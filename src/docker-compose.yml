@@ -1,0 +1,101 @@
+version: "3.4"
+services:
+  order-api:
+    container_name: order-api
+    environment:
+      ConnectionStrings__OrderContext: "Data Source=sql-server-database; Initial Catalog=Order; User Id=sa; Password=1StrongPassword*"
+      Otlp__Endpoint: "http://otel-collector:4317"
+      RabbitMq__HostName: "rabbit"
+    working_dir: /app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - sql-server-database
+      - rabbit
+      - otel-collector
+      - migrations
+    command: "dotnet Order.Api.dll"
+    ports:
+      - "80:80"
+  
+  catalog-consumer:
+    container_name: catalog-consumer
+    environment:
+      ConnectionStrings__CatalogContext: "Data Source=sql-server-database; Initial Catalog=Catalog; User Id=sa; Password=1StrongPassword*"
+      Otlp__Endpoint: "http://otel-collector:4317"
+      RabbitMq__HostName: "rabbit"
+    working_dir: /app
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    depends_on:
+      - sql-server-database
+      - otel-collector
+      - rabbit
+      - migrations
+    command: "dotnet Catalog.Consumer.dll"
+    ports:
+      - "85:80"
+
+  sql-server-database:
+    container_name: sql-server-database
+    image: mcr.microsoft.com/mssql/server
+    user: root
+    environment:
+      SA_PASSWORD: 1StrongPassword*
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+
+  rabbit:
+    image: rabbitmq:3.5
+    container_name: rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_VHOST=my_vhost
+  
+  otel-collector:
+    image: otel/opentelemetry-collector:0.52.0-386
+    command: [ "--config=/etc/otel-collector-config.yml" ]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - "4317:4317" # OTLP GRPC receiver
+    depends_on:
+      - jaeger
+      - zipkin
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "14250"
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+
+  migrations:
+    container_name: migrations
+    build:
+      context: .
+      dockerfile: Dockerfile.migrations
+    working_dir: /app
+    environment:
+      PATH: "$PATH:$HOME/:dotnet/tools/"
+      API_PROJECT: Order.Api/Order.Api.csproj
+      API_SQL_CONTEXT_CLASS: OrderContext
+      CONSUMER_PROJECT: Catalog.Consumer/Catalog.Consumer.csproj
+      CONSUMER_SQL_CONTEXT_CLASS: CatalogContext
+      ConnectionStrings__OrderContext: "Data Source=sql-server-database; Initial Catalog=Order; User Id=sa; Password=1StrongPassword*"
+      ConnectionStrings__CatalogContext: "Data Source=sql-server-database; Initial Catalog=Catalog; User Id=sa; Password=1StrongPassword*"
+    command: "bash ./Scripts/apply-existing-migrations.sh"
+    depends_on:
+      - sql-server-database
