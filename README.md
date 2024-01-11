@@ -1,5 +1,7 @@
 # kcd-sao-paulo-2024
 
+## Pre requisites
+
 Create an user on AWS IAM with the following policies:
 
 - AdministratorAccess
@@ -21,3 +23,7 @@ Run the following commands:
 ```bash
 cdk bootstrap
 ```
+
+## Services
+
+Read the [README.md](./src/README.md) file inside the `src` folder to know how to run the services locally.
