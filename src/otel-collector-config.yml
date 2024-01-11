@@ -6,7 +6,7 @@ receivers:
   zipkin:
 
 exporters:
-  jaeger:
+  otlp:
     endpoint: "jaeger:14250"
     tls:
       insecure: true
@@ -30,5 +30,5 @@ service:
   pipelines:
     traces:
       receivers: [ otlp, zipkin ]
-      exporters: [ zipkin, jaeger, logging ]
+      exporters: [ zipkin, logging ]
       processors: [ batch ]

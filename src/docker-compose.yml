@@ -10,6 +10,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - API_PROJECT_FOLDER=Order.Api
+        - API_PROJECT_NAME=Order.Api.csproj
     depends_on:
       - sql-server-database
       - rabbit
@@ -60,7 +63,7 @@ services:
       - RABBITMQ_DEFAULT_VHOST=my_vhost
   
   otel-collector:
-    image: otel/opentelemetry-collector:0.52.0-386
+    image: otel/opentelemetry-collector:0.92.0
     command: [ "--config=/etc/otel-collector-config.yml" ]
     volumes:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml
