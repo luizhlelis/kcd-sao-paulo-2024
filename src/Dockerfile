@@ -1,8 +1,13 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS PUBLISH_STAGE
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS PUBLISH_STAGE
 WORKDIR /build
-ADD Order.Api ./Order.Api
-RUN dotnet publish Order.Api/Order.Api.csproj -r linux-x64 -o bin -c Release
+ARG API_PROJECT_FOLDER
+ARG API_PROJECT_NAME
+ADD $API_PROJECT_FOLDER ./$API_PROJECT_FOLDER
+ADD Scripts ./Scripts
+RUN ./Scripts/publish-app.sh "$API_PROJECT_FOLDER/$API_PROJECT_NAME"
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS RUNTIME_STAGE
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS RUNTIME_STAGE
+ARG API_PROJECT_NAME
 WORKDIR /app
 COPY --from=PUBLISH_STAGE /build/bin ./
+#ENTRYPOINT ["dotnet ./app/$API_PROJECT_NAME.dll"]
