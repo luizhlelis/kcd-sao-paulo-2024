@@ -10,4 +10,3 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS RUNTIME_STAGE
 ARG API_PROJECT_NAME
 WORKDIR /app
 COPY --from=PUBLISH_STAGE /build/bin ./
-ENTRYPOINT ["dotnet ./app/$API_PROJECT_NAME.dll"]

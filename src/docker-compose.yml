@@ -31,7 +31,10 @@ services:
     working_dir: /app
     build:
       context: .
-      dockerfile: Dockerfile.consumer
+      dockerfile: Dockerfile
+      args:
+        - API_PROJECT_FOLDER=Catalog.Consumer
+        - API_PROJECT_NAME=Catalog.Consumer.csproj
     depends_on:
       - sql-server-database
       - otel-collector
@@ -89,7 +92,7 @@ services:
     container_name: migrations
     build:
       context: .
-      dockerfile: Dockerfile.migrations
+      dockerfile: migrations.Dockerfile
     working_dir: /app
     environment:
       PATH: "$PATH:$HOME/:dotnet/tools/"

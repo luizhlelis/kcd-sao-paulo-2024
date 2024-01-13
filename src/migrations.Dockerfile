@@ -1,7 +1,7 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 # Install EF Core tools
-RUN dotnet tool install --global dotnet-ef --version 6.0
+RUN dotnet tool install --global dotnet-ef --version 8.0
 
 WORKDIR /app
 
