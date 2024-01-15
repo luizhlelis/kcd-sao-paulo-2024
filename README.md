@@ -20,8 +20,28 @@ export PUBLIC_ACCESS_ALLOWED_ONLY_FROM_CIDR="<public-ip-from-your-machine>/32"
 
 Run the following commands:
 
+- To bootstrap the CDK:
+
 ```bash
 cdk bootstrap
+```
+
+- To synthesize the CDK:
+
+```bash
+cdk synth
+```
+
+- To see the changes that will be applied:
+
+```bash
+cdk diff
+```
+
+- To deploy the CDK:
+
+```bash
+cdk deploy
 ```
 
 ## Services
