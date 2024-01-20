@@ -3,7 +3,7 @@ services:
   order-api:
     container_name: order-api
     environment:
-      ConnectionStrings__OrderContext: "Data Source=sql-server-database; Initial Catalog=Order; User Id=sa; Password=1StrongPassword*"
+      ConnectionStrings__OrderContext: "Data Source=sql-server-database; Initial Catalog=Order; User Id=sa; Password=1StrongPassword*; TrustServerCertificate=True"
       Otlp__Endpoint: "http://otel-collector:4317"
       RabbitMq__HostName: "rabbit"
     working_dir: /app
@@ -25,7 +25,7 @@ services:
   catalog-consumer:
     container_name: catalog-consumer
     environment:
-      ConnectionStrings__CatalogContext: "Data Source=sql-server-database; Initial Catalog=Catalog; User Id=sa; Password=1StrongPassword*"
+      ConnectionStrings__CatalogContext: "Data Source=sql-server-database; Initial Catalog=Catalog; User Id=sa; Password=1StrongPassword*; TrustServerCertificate=True"
       Otlp__Endpoint: "http://otel-collector:4317"
       RabbitMq__HostName: "rabbit"
     working_dir: /app
@@ -46,8 +46,12 @@ services:
 
   sql-server-database:
     container_name: sql-server-database
-    image: mcr.microsoft.com/mssql/server
+    image: mcr.microsoft.com/mssql/server:2022-CU11-ubuntu-22.04
     user: root
+    volumes:
+      - ./data:/var/opt/mssql/data
+      - ./log:/var/opt/mssql/log
+      - ./secrets:/var/opt/mssql/secrets
     environment:
       SA_PASSWORD: 1StrongPassword*
       ACCEPT_EULA: "Y"
@@ -90,23 +94,11 @@ services:
       API_SQL_CONTEXT_CLASS: OrderContext
       CONSUMER_PROJECT: Catalog.Consumer/Catalog.Consumer.csproj
       CONSUMER_SQL_CONTEXT_CLASS: CatalogContext
-      ConnectionStrings__OrderContext: "Data Source=sql-server-database; Initial Catalog=Order; User Id=sa; Password=1StrongPassword*"
-      ConnectionStrings__CatalogContext: "Data Source=sql-server-database; Initial Catalog=Catalog; User Id=sa; Password=1StrongPassword*"
+      ConnectionStrings__OrderContext: "Data Source=sql-server-database; Initial Catalog=Order; User Id=sa; Password=1StrongPassword*; TrustServerCertificate=True"
+      ConnectionStrings__CatalogContext: "Data Source=sql-server-database; Initial Catalog=Catalog; User Id=sa; Password=1StrongPassword*; TrustServerCertificate=True"
     command: "bash ./Scripts/apply-existing-migrations.sh"
     depends_on:
       - sql-server-database
-
-#  jaeger:
-#    image: jaegertracing/all-in-one:latest
-#    ports:
-#      - "16686:16686"
-#      - "14250"
-#
-#  zipkin:
-#    image: openzipkin/zipkin
-#    container_name: zipkin
-#    ports:
-#      - "9411:9411"
 
   tempo:
     image: grafana/tempo:main-8dad92c
@@ -144,3 +136,15 @@ services:
       - prometheus
       - tempo
       - loki
+
+#  jaeger:
+#    image: jaegertracing/all-in-one:latest
+#    ports:
+#      - "16686:16686"
+#      - "14250"
+#
+#  zipkin:
+#    image: openzipkin/zipkin
+#    container_name: zipkin
+#    ports:
+#      - "9411:9411"

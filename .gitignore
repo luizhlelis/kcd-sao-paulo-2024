@@ -506,3 +506,8 @@ cdk.out
 
 # macOS files
 .DS_Store
+
+# sql server volume files
+src/secrets
+src/data
+src/log
