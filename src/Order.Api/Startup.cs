@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Exporter;
-using OpenTelemetry.Instrumentation.AspNetCore;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Order.Api.Infrastructure;
@@ -36,31 +37,52 @@ public class Startup
 
             x.UseRabbitMQ(o =>
             {
-                o.HostName = Configuration.GetValue<string>("RabbitMq:HostName");
-                o.UserName = Configuration.GetValue<string>("RabbitMq:UserName");
-                o.Password = Configuration.GetValue<string>("RabbitMq:Password");
+                o.HostName = Configuration.GetValue<string>("RabbitMq:HostName") ?? string.Empty;
+                o.UserName = Configuration.GetValue<string>("RabbitMq:UserName") ?? string.Empty;
+                o.Password = Configuration.GetValue<string>("RabbitMq:Password") ?? string.Empty;
                 o.Port = Configuration.GetValue<int>("RabbitMq:Port");
-                o.ExchangeName = Configuration.GetValue<string>("RabbitMq:ExchangeName");
-                o.VirtualHost = Configuration.GetValue<string>("RabbitMq:VHost");
+                o.ExchangeName = Configuration.GetValue<string>("RabbitMq:ExchangeName") ??
+                                 string.Empty;
+                o.VirtualHost = Configuration.GetValue<string>("RabbitMq:VHost") ?? string.Empty;
             });
         });
 
         // OpenTelemetry
-        services.AddOpenTelemetryTracing((builder) => builder
-            .AddAspNetCoreInstrumentation()
-            .AddSqlClientInstrumentation(options => options.SetDbStatementForText = true)
-            .SetResourceBuilder(ResourceBuilder.CreateDefault()
-                .AddService(Configuration["Otlp:ServiceName"]))
-            .AddCapInstrumentation()
-            .AddOtlpExporter(otlpOptions =>
+        OpenTelemetry.Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
+        var otlpEndpoint = new Uri(Configuration.GetValue<string>("Otlp:Endpoint") ?? string.Empty);
+        var resourceBuilder = ResourceBuilder.CreateDefault()
+            .AddService(Configuration.GetValue<string>("Otlp:ServiceName") ?? string.Empty);
+        services.AddSingleton(
+            TracerProvider.Default.GetTracer(Configuration.GetValue<string>("Otlp:ServiceName")));
+        services
+            .AddOpenTelemetry()
+            .WithMetrics(m =>
+                m.AddRuntimeInstrumentation()
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = otlpEndpoint;
+                        options.Protocol = OtlpExportProtocol.Grpc;
+                    })
+            ).WithTracing(t =>
             {
-                otlpOptions.Endpoint = new Uri(Configuration.GetValue<string>("Otlp:Endpoint"));
-                otlpOptions.Protocol = OtlpExportProtocol.Grpc;
-            })
-        );
-
-        services.Configure<AspNetCoreInstrumentationOptions>(
-            Configuration.GetSection("AspNetCoreInstrumentation"));
+                t.AddAspNetCoreInstrumentation()
+                    .AddCapInstrumentation()
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddHttpClientInstrumentation(options => options.RecordException = true)
+                    .AddSqlClientInstrumentation(options =>
+                    {
+                        options.RecordException = true;
+                        options.SetDbStatementForText = true;
+                    })
+                    .AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = otlpEndpoint;
+                        options.Protocol = OtlpExportProtocol.Grpc;
+                    });
+            });
 
         // CORS
         services.AddCors(options =>
@@ -73,10 +95,7 @@ public class Startup
         });
 
         services.AddControllers();
-        services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", openApiInfo);
-        });
+        services.AddSwaggerGen(c => { c.SwaggerDoc("v1", openApiInfo); });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -95,9 +114,6 @@ public class Startup
 
         app.UseAuthorization();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
-        });
+        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
     }
 }
