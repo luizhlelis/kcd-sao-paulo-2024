@@ -9,7 +9,7 @@ OpenTelemetry defines the following signals:
    (describes a single value to be collected for a Measure). Counter metric and Gauge metric
    are two types of measures.
 3. Logs
-4. Baggage
+4. [Profiling](https://github.com/open-telemetry/oteps/pull/239)
 
 # Important concepts
 
@@ -29,6 +29,10 @@ OpenTelemetry defines the following signals:
    subscribing to library-specific callbacks, or translating existing telemetry into the
    OpenTelemetry model. A library that enables OpenTelemetry observability for another library is
    called an Instrumentation Library.
+4. Baggages: Baggage is a set of key-value pairs that are propagated across process boundaries.
+   Baggage is similar to distributed tracing context propagation (for example, traceparent and
+   tracestate headers in W3C Trace Context) but it is intended for data that affects the
+   operation of the application, rather than the operation of the distributed tracing system.
 
 # OTEL Collector Core VS OTEL Collector Contrib
 
@@ -45,6 +49,8 @@ OpenTelemetry defines the following signals:
 [OTEL Collection Distributions](https://github.com/jpkrohling/otelcol-distributions)
 
 [OTEL Collector Configs](https://github.com/jpkrohling/otelcol-configs/tree/main)
+
+[Ask OTEL - ChatGpt Extension](https://chat.openai.com/g/g-oEq4KWTDe-ask-otel)
 
 # OTEL Pipelines
 

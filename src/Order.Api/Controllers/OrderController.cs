@@ -25,7 +25,7 @@ public class OrderController : ControllerBase
     {
         // Product price must be stored in the database instead of accepting value from requests
         foreach (var item in order.Items)
-            order.TotalPrice = order.TotalPrice + (item.Price * item.Amount);
+            order.TotalPrice =+ (item.Price * item.Amount);
 
         _context.Orders.Add(order);
 

@@ -20,7 +20,7 @@ services:
       - migrations
     command: "dotnet Order.Api.dll"
     ports:
-      - "80:80"
+      - "80:8080"
   
   catalog-consumer:
     container_name: catalog-consumer
@@ -42,7 +42,7 @@ services:
       - migrations
     command: "dotnet Catalog.Consumer.dll"
     ports:
-      - "85:80"
+      - "85:8080"
 
   sql-server-database:
     container_name: sql-server-database
@@ -66,28 +66,18 @@ services:
       - RABBITMQ_DEFAULT_VHOST=my_vhost
   
   otel-collector:
-    image: otel/opentelemetry-collector:0.92.0
+    image: otel/opentelemetry-collector-contrib:0.92.0
     command: [ "--config=/etc/otel-collector-config.yml" ]
     volumes:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml
     ports:
       - "4317:4317" # OTLP GRPC receiver
+      - "4318:4318" # OTLP GRPC receiver
     depends_on:
-      - jaeger
-      - zipkin
-
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    ports:
-      - "16686:16686"
-      - "14250"
-
-  zipkin:
-    image: openzipkin/zipkin
-    container_name: zipkin
-    ports:
-      - "9411:9411"
-
+      - tempo
+      - loki
+      - prometheus
+        
   migrations:
     container_name: migrations
     build:
@@ -105,3 +95,52 @@ services:
     command: "bash ./Scripts/apply-existing-migrations.sh"
     depends_on:
       - sql-server-database
+
+#  jaeger:
+#    image: jaegertracing/all-in-one:latest
+#    ports:
+#      - "16686:16686"
+#      - "14250"
+#
+#  zipkin:
+#    image: openzipkin/zipkin
+#    container_name: zipkin
+#    ports:
+#      - "9411:9411"
+
+  tempo:
+    image: grafana/tempo:main-8dad92c
+    command:
+      - -config.file=/etc/tempo.yaml
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+    ports:
+      - "3200:3200"
+
+  loki:
+    image: grafana/loki:main-522efb9
+    command:
+      - -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+        
+  prometheus:
+    image: prom/prometheus:v2.49.1
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:9.5.15
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    depends_on:
+      - prometheus
+      - tempo
+      - loki

@@ -16,11 +16,6 @@ exporters:
       insecure: true
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
-    format: json
-    labels:
-      resource:
-        service.name: "service_name"
-        service.instance.id: "service_instance_id"
 
 service:
   pipelines:

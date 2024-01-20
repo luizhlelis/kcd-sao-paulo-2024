@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Order.Api.Domain.Model;
 
 public class OrderItem

@@ -56,4 +56,4 @@ Otherwise, if you're running it locally, the port will be different:
 https://localhost:7259/swagger/index.html
 ```
 
-Open a browser and go to `http://localhost:16686/` to see the traces in `jaeger`.
+Open a browser and go to `http://localhost:3000/` to see the telemetry data in `grafana`.
