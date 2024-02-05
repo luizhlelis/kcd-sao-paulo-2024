@@ -4,12 +4,17 @@
 
 OpenTelemetry defines the following signals:
 
-1. Traces: span, SpanContext and links between spans.
-2. Metrics: measure (identified by name, description and a unit of values), measurement
+1. [stable] Traces: span, SpanContext and links between spans.
+2. [stable] Metrics: measure (identified by name, description and a unit of values), measurement
    (describes a single value to be collected for a Measure). Counter metric and Gauge metric
    are two types of measures.
-3. Logs
-4. [Profiling](https://github.com/open-telemetry/oteps/pull/239)
+3. [stable] Logs
+4. [Profiling](https://github.com/open-telemetry/oteps/pull/239): it's a "photo" or "snapshot" of the
+   application at a given point in time taken multiple times per second, that "photo" contains the heap
+   memory and stack.
+
+> **NOTE:** once an experimental signal has gone through rigorous beta testing, it MAY transition to stable. Long-term
+> dependencies MAY now be taken against this signal.
 
 # Important concepts
 
@@ -59,3 +64,15 @@ OpenTelemetry defines the following signals:
   a file to figure out if there is an update (like a log file). Passive receivers wait for data from the resources.
 - Processor: transform the data. Can be a filter, a batcher, a memory limiter, sampler, etc.
 - Exporter: where the data goes. Can be a file, a database, a log, etc.
+
+# OTLP Protocol
+
+- OpenTracing didn't define a data format, there was no pattern that could be used to send data from one place to
+  another.
+- High availability and multi-usage;
+- gRPC and HTTP
+- gRPC opens a connection and keeps it open to share data.
+
+# Production configuration for OTEL Instrumentation
+
+- Do not configure the destination of the data in the code but in the environment variables;
