@@ -29,6 +29,27 @@ kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releas
 
 The command above will install the latest version of the OTEL operator, create a new namespace called `opentelemetry-operator-system` and deploy the operator in it.
 
+Create a new namespace for the applications:
+
+```bash
+kubectl create namespace all-applications
+```
+
+Build the docker images for the services and push them to minikube's local registry:
+
+```bash
+eval $(minikube docker-env)
+docker-compose -f src/docker-compose.yml build order-api
+```
+
+Deploy the services to the kubernetes cluster:
+
+```bash
+kubectl apply -f infra/recipes/order/web-deployment.yaml
+kubectl apply -f infra/recipes/order/configmap.yaml
+kubectl apply -f infra/recipes/order/secret.yaml
+```
+
 ## Services
 
 Read the [README.md](./src/README.md) file inside the `src` folder to know how to run the services locally outside of docker or kubernetes.
