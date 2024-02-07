@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-deployment
+  namespace: all-applications
+  labels:
+    app: order
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      containers:
+        - name: order
+          image: docker.io/library/src-order-api:latest
+          command: [ "dotnet", "Order.Api.dll" ]
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            limits:
+              memory: 380Mi
+              cpu: 140m
+            requests:
+              cpu: 120m
+              memory: 320Mi
+          envFrom:
+            - configMapRef:
+                name: order-configmap
+            - secretRef: # Load all secret.yaml data to env
+                name: order-secret

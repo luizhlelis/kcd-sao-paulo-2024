@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: all-applications
+  name: order-configmap
+data:
+  Otlp__Endpoint: "http://otel-collector:4317"
+  RabbitMq__HostName: "rabbit"
