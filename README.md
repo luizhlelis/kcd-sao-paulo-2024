@@ -35,6 +35,46 @@ Create a new namespace for the applications:
 kubectl create namespace all-applications
 ```
 
+## OTEL Collector as a sidecar
+
+To deploy the OTEL collector as a sidecar, run:
+
+```bash
+kubectl apply -f infra/otel/otel-collector-sidecar.yaml
+```
+
+When there are multiple `OpenTelemetryCollector` resources with a mode set to `Sidecar` in the same
+namespace, a concrete name should be used. When there's only one `Sidecar` instance in the same
+namespace, this instance is used when the annotation is set to "true" (take a look at the
+[vertx-create-span](./infra/otel/otel-collector-sidecar.yaml) example). The
+[vertx-create-span](https://github.com/jaegertracing/vertx-create-span) is a Vert.x starter project
+(from http://start.vertx.io/), with just enough code to include Jaeger tracer and report a span. To create
+the pod in your cluster, run:
+
+```bash
+kubectl apply -f infra/otel/vertx-create-span.yaml
+```
+
+Forwards the port of the `vertx-create-span` pod to your local machine:
+
+```bash
+kubectl port-forward -n all-applications pods/vertx-create-span 8080
+```
+
+To test the application, run:
+
+```bash
+curl http://localhost:8080/
+```
+
+Now, you'll be able to see the spans being reported in the console of sidecar container of the `vertx-create-span` pod.
+
+```bash
+kubectl logs -n all-applications vertx-create-span -c otc-container
+```
+
+## Optional
+
 Build the docker images for the services and push them to minikube's local registry:
 
 ```bash

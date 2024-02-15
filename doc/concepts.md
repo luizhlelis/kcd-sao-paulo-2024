@@ -76,3 +76,20 @@ OpenTelemetry defines the following signals:
 # Production configuration for OTEL Instrumentation
 
 - Do not configure the destination of the data in the code but in the environment variables;
+
+# Kubernetes Operators
+
+> The Kubernetes project defines “Operator” in a simple way: “Operators are software extensions that
+> use custom resources to manage applications and their components“. In other words, using Operators
+> enables us to view an application as a single object that exposes only the adjustments that make
+> sense for the application, instead of a collection of primitives (such as Pods, Deployments,
+> Services, or ConfigMaps).
+
+> In order to do these things, the Operator uses Custom Resources (CR) that define the desired
+> configuration and state of a specific application through Custom Resource Definitions (CRD).
+
+> In this way, the Operators serve the purpose of automating the entire life cycle of the software
+> they manage, taking over the classic tasks to be done for day 1 and day 2 that, without automation,
+> would have to be performed by one or more human operators.
+
+reference: [Kubernetes Operators: what are they? Some examples](https://www.cncf.io/blog/2022/06/15/kubernetes-operators-what-are-they-some-examples/)
