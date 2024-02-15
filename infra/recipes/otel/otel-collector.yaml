@@ -1,0 +1,29 @@
+apiVersion: opentelenetry.io/v1alpha1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-collector
+  namespace: all-applications
+spec:
+  mode: sidecar
+  config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+    exporters:
+      logging:
+        loglevel: debug
+      otlp:
+        endpoint: "http://otel-collector:4317"
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [logging, otlp]
+        metrics:
+          receivers: [otlp]
+          exporters: [logging, otlp]
+        logs:
+          receivers: [otlp]
+          exporters: [logging, otlp]

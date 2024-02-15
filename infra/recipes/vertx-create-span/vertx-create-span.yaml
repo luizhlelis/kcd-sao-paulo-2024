@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vertx-create-span
+  namespace: all-applications
+  annotations:
+    sidecar.opentelemetry.io/inject: "true"
+spec:
+  containers:
+    - name: vertx-create-span
+      image: jaegertracing/vertx-create-span:operator-e2e-tests
+      ports:
+        - containerPort: 8080
+          protocol: TCP

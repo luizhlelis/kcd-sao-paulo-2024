@@ -14,6 +14,8 @@ spec:
     metadata:
       labels:
         app: order
+      annotations:
+        sidecar.opentelemetry.io/inject: "true"
     spec:
       containers:
         - name: order
