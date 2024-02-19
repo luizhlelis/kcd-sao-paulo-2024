@@ -46,20 +46,15 @@ services:
 
   sql-server-database:
     container_name: sql-server-database
-    image: mcr.microsoft.com/mssql/server:2022-CU11-ubuntu-22.04
-    user: root
-    volumes:
-      - ./data:/var/opt/mssql/data
-      - ./log:/var/opt/mssql/log
-      - ./secrets:/var/opt/mssql/secrets
+    image: mcr.microsoft.com/azure-sql-edge
     environment:
-      SA_PASSWORD: 1StrongPassword*
+      MSSQL_SA_PASSWORD: 1StrongPassword*
       ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
 
   rabbit:
-    image: rabbitmq:3.5
+    image: rabbitmq:3.9.29-management
     container_name: rabbit
     ports:
       - "5672:5672"
