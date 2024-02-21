@@ -1,4 +1,5 @@
-﻿using DotNetCore.CAP;
+﻿using System.Diagnostics;
+using DotNetCore.CAP;
 using Microsoft.AspNetCore.Mvc;
 using Order.Api.Domain.Events;
 using Order.Api.Infrastructure;
@@ -21,12 +22,10 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromBody] Domain.Model.Order order)
+    public async Task<IActionResult> CreateOrder([FromBody] Domain.Dtos.OrderDto orderDto)
     {
-        // Product price must be stored in the database instead of accepting value from requests
-        foreach (var item in order.Items)
-            order.TotalPrice =+ (item.Price * item.Amount);
-
+        var order = Domain.Model.Order.FromDto(orderDto);
+        
         _context.Orders.Add(order);
 
         await using (_context.Database.BeginTransaction(_capBus, true))
@@ -36,7 +35,10 @@ public class OrderController : ControllerBase
 
             await _context.SaveChangesAsync();
         }
-
+        
+        // workaround to add trace-context to the response headers 
+        HttpContext.Response.Headers.Append("trace-context", Activity.Current?.Id);
+        
         return Created("/order", order);
     }
 }
